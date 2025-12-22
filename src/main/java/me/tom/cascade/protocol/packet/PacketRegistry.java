@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import me.tom.cascade.protocol.ConnectionState;
+import me.tom.cascade.protocol.packet.packets.c2s.EncryptionRequestPacket;
 import me.tom.cascade.protocol.packet.packets.c2s.HandshakePacket;
 import me.tom.cascade.protocol.packet.packets.c2s.LoginStartPacket;
 import me.tom.cascade.protocol.packet.packets.c2s.PingRequestPacket;
@@ -32,6 +33,8 @@ public class PacketRegistry {
 
         statusIds.put(StatusResponsePacket.class, 0x00);
         statusIds.put(PongResponsePacket.class, 0x01);
+        
+        loginIds.put(EncryptionRequestPacket.class, 0x01);
     }
 
     private void register(Map<Integer, Class<? extends Packet>> forward,
