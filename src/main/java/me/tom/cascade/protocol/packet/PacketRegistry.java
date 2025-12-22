@@ -6,35 +6,63 @@ import java.util.Map;
 import me.tom.cascade.protocol.ConnectionState;
 import me.tom.cascade.protocol.packet.packets.c2s.HandshakePacket;
 import me.tom.cascade.protocol.packet.packets.c2s.StatusRequestPacket;
+import me.tom.cascade.protocol.packet.packets.s2c.StatusResponsePacket;
 
 public class PacketRegistry {
-
     private final Map<Integer, Class<? extends Packet>> handshakePackets = new HashMap<>();
     private final Map<Integer, Class<? extends Packet>> statusPackets = new HashMap<>();
     private final Map<Integer, Class<? extends Packet>> loginPackets = new HashMap<>();
     private final Map<Integer, Class<? extends Packet>> playPackets = new HashMap<>();
 
+    private final Map<Class<? extends Packet>, Integer> handshakeIds = new HashMap<>();
+    private final Map<Class<? extends Packet>, Integer> statusIds = new HashMap<>();
+    private final Map<Class<? extends Packet>, Integer> loginIds = new HashMap<>();
+    private final Map<Class<? extends Packet>, Integer> playIds = new HashMap<>();
+
     public PacketRegistry() {
-        handshakePackets.put(0x00, HandshakePacket.class);
-        statusPackets.put(0x00, StatusRequestPacket.class);
+        register(handshakePackets, handshakeIds, 0x00, HandshakePacket.class);
+        
+        register(statusPackets, statusIds, 0x00, StatusRequestPacket.class);
+
+        statusIds.put(StatusResponsePacket.class, 0x00);
+    }
+
+    private void register(Map<Integer, Class<? extends Packet>> forward,
+                          Map<Class<? extends Packet>, Integer> reverse,
+                          int id,
+                          Class<? extends Packet> clazz) {
+
+        forward.put(id, clazz);
+        reverse.put(clazz, id);
     }
 
     public Class<? extends Packet> getPacket(int id, ConnectionState state) {
         switch (state) {
             case HANDSHAKE:
                 return handshakePackets.get(id);
-
             case STATUS:
                 return statusPackets.get(id);
-
             case LOGIN:
                 return loginPackets.get(id);
-
             case PLAY:
                 return playPackets.get(id);
-
             default:
                 return null;
+        }
+    }
+
+    public int getPacketId(Class<? extends Packet> clazz, ConnectionState state) {
+        switch (state) {
+            case HANDSHAKE:
+                return handshakeIds.getOrDefault(clazz, -1);
+            case STATUS:
+                return statusIds.getOrDefault(clazz, -1);
+            case LOGIN:
+                return loginIds.getOrDefault(clazz, -1);
+            case PLAY:
+                return playIds.getOrDefault(clazz, -1);
+            default:
+                return -1;
         }
     }
 }
