@@ -5,6 +5,7 @@ import java.util.Map;
 
 import me.tom.cascade.protocol.ConnectionState;
 import me.tom.cascade.protocol.packet.packets.c2s.HandshakePacket;
+import me.tom.cascade.protocol.packet.packets.c2s.PingRequestPacket;
 import me.tom.cascade.protocol.packet.packets.c2s.StatusRequestPacket;
 import me.tom.cascade.protocol.packet.packets.s2c.StatusResponsePacket;
 
@@ -23,6 +24,7 @@ public class PacketRegistry {
         register(handshakePackets, handshakeIds, 0x00, HandshakePacket.class);
         
         register(statusPackets, statusIds, 0x00, StatusRequestPacket.class);
+        register(statusPackets, statusIds, 0x01, PingRequestPacket.class);
 
         statusIds.put(StatusResponsePacket.class, 0x00);
     }
