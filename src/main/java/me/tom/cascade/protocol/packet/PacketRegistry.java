@@ -6,10 +6,12 @@ import java.util.Map;
 import me.tom.cascade.protocol.ConnectionState;
 import me.tom.cascade.protocol.packet.packets.c2s.EncryptionRequestPacket;
 import me.tom.cascade.protocol.packet.packets.c2s.HandshakePacket;
+import me.tom.cascade.protocol.packet.packets.c2s.LoginAcknowledgedPacket;
 import me.tom.cascade.protocol.packet.packets.c2s.LoginStartPacket;
 import me.tom.cascade.protocol.packet.packets.c2s.PingRequestPacket;
 import me.tom.cascade.protocol.packet.packets.c2s.StatusRequestPacket;
 import me.tom.cascade.protocol.packet.packets.s2c.EncryptionResponsePacket;
+import me.tom.cascade.protocol.packet.packets.s2c.LoginSuccessPacket;
 import me.tom.cascade.protocol.packet.packets.s2c.PongResponsePacket;
 import me.tom.cascade.protocol.packet.packets.s2c.StatusResponsePacket;
 
@@ -32,11 +34,13 @@ public class PacketRegistry {
         
         register(loginPackets, loginIds, 0x00, LoginStartPacket.class);
         register(loginPackets, loginIds, 0x01, EncryptionResponsePacket.class);
-
+        register(loginPackets, loginIds, 0x03, LoginAcknowledgedPacket.class);
+        
         statusIds.put(StatusResponsePacket.class, 0x00);
         statusIds.put(PongResponsePacket.class, 0x01);
         
         loginIds.put(EncryptionRequestPacket.class, 0x01);
+        loginIds.put(LoginSuccessPacket.class, 0x02);
     }
 
     private void register(Map<Integer, Class<? extends Packet>> forward,

@@ -8,4 +8,7 @@ public class ProtocolAttributes {
     
     public static final AttributeKey<byte[]> VERIFY_TOKEN =
             AttributeKey.valueOf("cascade-verify-token");
+    
+    public static final AttributeKey<String> USERNAME =
+            AttributeKey.valueOf("cascade-username");
 }

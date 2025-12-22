@@ -3,10 +3,12 @@ package me.tom.cascade.protocol.packet.packets.c2s;
 import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
+import lombok.Getter;
 import me.tom.cascade.net.types.Utf8String;
 import me.tom.cascade.net.types.UuidType;
 import me.tom.cascade.protocol.packet.Packet;
 
+@Getter
 public class LoginStartPacket implements Packet {
 
     public String name;

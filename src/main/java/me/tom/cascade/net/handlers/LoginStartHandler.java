@@ -13,6 +13,7 @@ public class LoginStartHandler extends SimpleChannelInboundHandler<LoginStartPac
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, LoginStartPacket packet) {
+    	ctx.channel().attr(ProtocolAttributes.USERNAME).set(packet.getName());
 
         byte[] verifyToken = new byte[4];
         new SecureRandom().nextBytes(verifyToken);

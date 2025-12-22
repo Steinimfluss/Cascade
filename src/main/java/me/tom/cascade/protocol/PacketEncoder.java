@@ -19,12 +19,12 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
         if (state == null) {
             state = ConnectionState.HANDSHAKE;
         }
-
         int packetId = registry.getPacketId(packet.getClass(), state);
         if (packetId == -1) {
             throw new IllegalStateException("Unknown packet ID for " + packet.getClass().getSimpleName() + " in state " + state);
         }
 
+        System.out.println("Sent " + packet);
         VarInt.write(body, packetId);
 
         packet.encode(body);

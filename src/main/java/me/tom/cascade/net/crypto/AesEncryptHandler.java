@@ -1,13 +1,13 @@
 package me.tom.cascade.net.crypto;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-
-public class AesEncryptHandler extends MessageToByteEncoder<ByteBuf> {
+public class AesEncryptHandler extends MessageToByteEncoder<Object> {
 
     private final Cipher cipher;
 
@@ -16,11 +16,27 @@ public class AesEncryptHandler extends MessageToByteEncoder<ByteBuf> {
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, ByteBuf in, ByteBuf out) throws Exception {
-        byte[] input = new byte[in.readableBytes()];
-        in.readBytes(input);
+    protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
+        if (msg instanceof ByteBuf) {
+        	ByteBuf buf = (ByteBuf)msg;
 
-        byte[] encrypted = cipher.update(input);
-        out.writeBytes(encrypted);
+            int readable = buf.readableBytes();
+            if (readable == 0) {
+                return;
+            }
+
+            byte[] input = new byte[readable];
+            buf.readBytes(input);
+
+            byte[] encrypted = cipher.update(input);
+            if (encrypted == null || encrypted.length == 0) {
+                return;
+            }
+
+            out.writeBytes(encrypted);
+            return;
+        }
+
+        ctx.write(msg);
     }
 }

@@ -1,7 +1,10 @@
 package me.tom.cascade.util;
 
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
 import java.security.PrivateKey;
 
 import javax.crypto.Cipher;
@@ -44,4 +47,22 @@ public final class Crypto {
             throw new RuntimeException("Failed to init AES cipher", e);
         }
     }
+    
+    public static String minecraftSha1Hash(String serverId, byte[] sharedSecret, byte[] publicKeyBytes) {
+	    try {
+	        MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+	        sha1.update(serverId.getBytes(StandardCharsets.US_ASCII));
+	        sha1.update(sharedSecret);
+	        sha1.update(publicKeyBytes);
+	        byte[] digest = sha1.digest();
+	        return toMinecraftHex(digest);
+	    } catch (Exception e) {
+	        throw new RuntimeException("Failed to compute serverId hash", e);
+	    }
+	}
+
+	private static String toMinecraftHex(byte[] digest) {
+	    BigInteger i = new BigInteger(digest);
+	    return i.toString(16);
+	}
 }
