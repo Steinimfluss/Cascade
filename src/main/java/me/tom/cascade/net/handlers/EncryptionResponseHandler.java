@@ -9,7 +9,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import me.tom.cascade.auth.MojangProfile;
+import me.tom.cascade.auth.GameProfile;
 import me.tom.cascade.auth.MojangSessionService;
 import me.tom.cascade.net.crypto.AesDecryptHandler;
 import me.tom.cascade.net.crypto.AesEncryptHandler;
@@ -40,7 +40,7 @@ public class EncryptionResponseHandler extends SimpleChannelInboundHandler<Encry
 	    String clientIp = ((InetSocketAddress) ctx.channel().remoteAddress())
 	            .getAddress().getHostAddress();
 
-	    MojangProfile profile =
+	    GameProfile profile =
 	            MojangSessionService.hasJoined(username, serverIdHash, clientIp);
 
 	    if (profile == null) {

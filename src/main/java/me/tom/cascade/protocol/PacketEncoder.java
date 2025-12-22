@@ -24,7 +24,6 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
             throw new IllegalStateException("Unknown packet ID for " + packet.getClass().getSimpleName() + " in state " + state);
         }
 
-        System.out.println("Sent " + packet);
         VarInt.write(body, packetId);
 
         packet.encode(body);

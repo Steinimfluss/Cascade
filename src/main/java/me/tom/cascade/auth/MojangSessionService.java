@@ -20,7 +20,7 @@ public class MojangSessionService {
     	    .registerTypeAdapter(UUID.class, new MojangUUIDAdapter())
     	    .create();
 
-    public static MojangProfile hasJoined(String username, String serverIdHash, String ip) {
+    public static GameProfile hasJoined(String username, String serverIdHash, String ip) {
         try {
             StringBuilder url = new StringBuilder("https://sessionserver.mojang.com/session/minecraft/hasJoined");
             url.append("?username=").append(URLEncoder.encode(username, StandardCharsets.UTF_8.name()));
@@ -43,7 +43,7 @@ public class MojangSessionService {
             try (InputStream in = conn.getInputStream();
                  Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
 
-                return GSON.fromJson(reader, MojangProfile.class);
+                return GSON.fromJson(reader, GameProfile.class);
             }
 
         } catch (Exception e) {

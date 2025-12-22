@@ -7,7 +7,7 @@ import me.tom.cascade.net.types.Utf8String;
 import me.tom.cascade.net.types.UuidType;
 import me.tom.cascade.net.types.VarInt;
 
-public class MojangProfile {
+public class GameProfile {
 
     public UUID id;
     public String name;
@@ -41,8 +41,8 @@ public class MojangProfile {
         }
     }
 
-    public static MojangProfile read(ByteBuf in) {
-        MojangProfile profile = new MojangProfile();
+    public static GameProfile read(ByteBuf in) {
+        GameProfile profile = new GameProfile();
 
         profile.id = UuidType.read(in);
         profile.name = Utf8String.read(in, 16);
