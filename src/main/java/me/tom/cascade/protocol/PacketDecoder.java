@@ -16,8 +16,9 @@ public class PacketDecoder extends MessageToMessageDecoder<ByteBuf> {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         int packetId = VarInt.read(in);
-
         ConnectionState state = ctx.channel().attr(ProtocolAttributes.STATE).get();
+        System.out.println("Received packet id " + packetId + state);
+
         if (state == null) {
             state = ConnectionState.HANDSHAKE;
             ctx.channel().attr(ProtocolAttributes.STATE).set(state);
@@ -25,13 +26,13 @@ public class PacketDecoder extends MessageToMessageDecoder<ByteBuf> {
 
         Class<? extends Packet> clazz = registry.getPacket(packetId, state);
         if (clazz == null) {
-            System.out.println("[Cascade] Unknown packet ID " + packetId + " in state " + state);
+            System.out.println("Received unknown packet ID " + packetId + " in state " + state);
             return;
         }
 
         Packet packet = clazz.newInstance();
         packet.decode(in);
-
+        
         out.add(packet);
     }
 }

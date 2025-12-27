@@ -1,9 +1,16 @@
 package me.tom.cascade.protocol.packet.packets.c2s;
 
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import me.tom.cascade.net.types.Utf8String;
 import me.tom.cascade.net.types.VarInt;
 import me.tom.cascade.protocol.packet.Packet;
 
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class HandshakePacket implements Packet {
 
     public int protocolVersion;
@@ -14,10 +21,7 @@ public class HandshakePacket implements Packet {
     @Override
     public void decode(ByteBuf in) {
         protocolVersion = VarInt.read(in);
-
-        int hostLength = VarInt.read(in);
-        hostname = in.readCharSequence(hostLength, java.nio.charset.StandardCharsets.UTF_8).toString();
-
+        hostname = Utf8String.read(in, 255);
         port = in.readUnsignedShort();
         nextState = VarInt.read(in);
     }

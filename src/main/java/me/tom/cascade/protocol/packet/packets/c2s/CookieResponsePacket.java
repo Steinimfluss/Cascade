@@ -1,32 +1,29 @@
 package me.tom.cascade.protocol.packet.packets.c2s;
 
-import java.util.UUID;
-
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import me.tom.cascade.net.types.ByteArray;
 import me.tom.cascade.net.types.Utf8String;
-import me.tom.cascade.net.types.UuidType;
 import me.tom.cascade.protocol.packet.Packet;
 
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
-public class LoginStartPacket implements Packet {
+public class CookieResponsePacket implements Packet {
+	private String key;
+	private byte[] payload;
 
-    public String name;
-    public UUID uuid;
-    
     @Override
     public void decode(ByteBuf in) {
-    	name = Utf8String.read(in, 16);
-    	uuid = UuidType.read(in);
+    	key = Utf8String.read(in, 32767);
+    	payload = ByteArray.read(in);
     }
 
     @Override
     public void encode(ByteBuf out) {
-    	Utf8String.write(out, name, 16);
-    	UuidType.write(out, uuid);
+    	Utf8String.write(out, key, 32767);
+    	ByteArray.write(out, payload);
     }
 }

@@ -7,26 +7,19 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import me.tom.cascade.protocol.ProtocolAttributes;
 import me.tom.cascade.protocol.packet.packets.c2s.EncryptionRequestPacket;
 import me.tom.cascade.protocol.packet.packets.c2s.LoginStartPacket;
+import me.tom.cascade.protocol.packet.packets.s2c.CookieRequestPacket;
 import me.tom.cascade.util.Crypto;
 
 public class LoginStartHandler extends SimpleChannelInboundHandler<LoginStartPacket> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, LoginStartPacket packet) {
+    	System.out.println("Client starting login process");
     	ctx.channel().attr(ProtocolAttributes.USERNAME).set(packet.getName());
+    	
+    	ctx.channel().attr(ProtocolAttributes.LOGIN_START_PACKET).set(packet);
 
-        byte[] verifyToken = new byte[4];
-        new SecureRandom().nextBytes(verifyToken);
-
-        ctx.channel().attr(ProtocolAttributes.VERIFY_TOKEN).set(verifyToken);
-
-        EncryptionRequestPacket response = new EncryptionRequestPacket(
-        		"",
-                Crypto.KEY_PAIR.getPublic().getEncoded(),
-                verifyToken,
-                true
-        );
-
-        ctx.writeAndFlush(response);
+    	CookieRequestPacket cookieRequest = new CookieRequestPacket("token");
+        ctx.writeAndFlush(cookieRequest);
     }
 }

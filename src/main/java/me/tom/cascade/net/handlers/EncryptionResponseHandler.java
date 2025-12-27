@@ -42,6 +42,7 @@ public class EncryptionResponseHandler extends SimpleChannelInboundHandler<Encry
 
 	    GameProfile profile =
 	            MojangSessionService.hasJoined(username, serverIdHash, clientIp);
+        ctx.channel().attr(ProtocolAttributes.GAME_PROFILE).set(profile);
 
 	    if (profile == null) {
 	        ctx.close();

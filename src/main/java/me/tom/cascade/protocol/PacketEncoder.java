@@ -15,13 +15,13 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
     protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf out) throws Exception {
         ByteBuf body = ctx.alloc().buffer();
 
+        System.out.println(packet);
         ConnectionState state = ctx.channel().attr(ProtocolAttributes.STATE).get();
-        if (state == null) {
-            state = ConnectionState.HANDSHAKE;
-        }
         int packetId = registry.getPacketId(packet.getClass(), state);
+        System.out.println(state + " " + packetId);
+
         if (packetId == -1) {
-            throw new IllegalStateException("Unknown packet ID for " + packet.getClass().getSimpleName() + " in state " + state);
+            throw new IllegalStateException("Sent unknown packet ID for " + packet.getClass().getSimpleName() + " in state " + state);
         }
 
         VarInt.write(body, packetId);
@@ -31,6 +31,7 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
         VarInt.write(out, body.readableBytes());
 
         out.writeBytes(body);
+        System.out.println("Sent " + packetId + " " + state + " " + ctx.name() + " " + packet);
 
         body.release();
     }
