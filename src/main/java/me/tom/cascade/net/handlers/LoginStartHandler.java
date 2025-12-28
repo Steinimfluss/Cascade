@@ -11,10 +11,12 @@ public class LoginStartHandler extends SimpleChannelInboundHandler<LoginStartPac
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, LoginStartPacket packet) {
     	ctx.channel().attr(ProtocolAttributes.USERNAME).set(packet.getName());
-    	
     	ctx.channel().attr(ProtocolAttributes.LOGIN_START_PACKET).set(packet);
 
-    	CookieRequestPacket cookieRequest = new CookieRequestPacket("token");
+    	CookieRequestPacket cookieRequest = new CookieRequestPacket(
+    				"token"
+    			);
+    	
         ctx.writeAndFlush(cookieRequest);
     }
 }

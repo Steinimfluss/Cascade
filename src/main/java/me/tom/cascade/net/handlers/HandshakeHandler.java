@@ -10,20 +10,18 @@ public class HandshakeHandler extends SimpleChannelInboundHandler<HandshakePacke
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HandshakePacket packet) {
-        ctx.channel().attr(ProtocolAttributes.PROTOCOL_VERSION).set(packet.getProtocolVersion());
-
-        ctx.channel().attr(ProtocolAttributes.HOSTNAME).set(packet.getHostname());
-
-        ctx.channel().attr(ProtocolAttributes.PORT).set(packet.getPort());
-
-        if (packet.nextState == 1) {
-            ctx.channel().attr(ProtocolAttributes.STATE).set(ConnectionState.STATUS);
-        } else if (packet.nextState == 2) {
-            ctx.channel().attr(ProtocolAttributes.STATE).set(ConnectionState.LOGIN);
-        } else if (packet.nextState == 3) {
-            ctx.channel().attr(ProtocolAttributes.STATE).set(ConnectionState.LOGIN);
-        }
-
     	ctx.channel().attr(ProtocolAttributes.HANDSHAKE_PACKET).set(packet);
+    	
+    	ConnectionState nextState = ConnectionState.values()[packet.getNextState()];
+
+    	boolean isTransfer = nextState == ConnectionState.TRANSFER;
+    	
+    	ctx.channel().attr(ProtocolAttributes.TRANSFER).set(isTransfer);
+    	
+    	if(isTransfer) {
+    		nextState = ConnectionState.LOGIN;
+    	}
+    	
+        ctx.channel().attr(ProtocolAttributes.STATE).set(nextState);
     }
 }

@@ -25,13 +25,11 @@ public class PacketRegistry {
     private final Map<Integer, Class<? extends Packet>> statusPackets = new HashMap<>();
     private final Map<Integer, Class<? extends Packet>> loginPackets = new HashMap<>();
     private final Map<Integer, Class<? extends Packet>> configPackets = new HashMap<>();
-    private final Map<Integer, Class<? extends Packet>> playPackets = new HashMap<>();
 
     private final Map<Class<? extends Packet>, Integer> handshakeIds = new HashMap<>();
     private final Map<Class<? extends Packet>, Integer> statusIds = new HashMap<>();
     private final Map<Class<? extends Packet>, Integer> loginIds = new HashMap<>();
     private final Map<Class<? extends Packet>, Integer> configIds = new HashMap<>();
-    private final Map<Class<? extends Packet>, Integer> playIds = new HashMap<>();
 
     public PacketRegistry() {
         register(handshakePackets, handshakeIds, 0x00, HandshakePacket.class);
@@ -79,8 +77,6 @@ public class PacketRegistry {
                 return loginPackets.get(id);
             case CONFIGURATION:
                 return configPackets.get(id);
-            case PLAY:
-                return playPackets.get(id);
             default:
                 return null;
         }
@@ -96,8 +92,6 @@ public class PacketRegistry {
                 return loginIds.getOrDefault(clazz, -1);
             case CONFIGURATION:
                 return configIds.getOrDefault(clazz, -1);
-            case PLAY:
-                return playIds.getOrDefault(clazz, -1);
             default:
                 return -1;
         }

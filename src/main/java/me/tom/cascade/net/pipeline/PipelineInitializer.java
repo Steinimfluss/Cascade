@@ -25,7 +25,7 @@ public class PipelineInitializer extends ChannelInitializer<SocketChannel> {
     	Bootstrap backendBootstrap = new Bootstrap()
     	        .group(ch.eventLoop())
     	        .channel(NioSocketChannel.class)
-    	        .handler(new BackendInitializer(ch));
+    	        .handler(new BackendInitializer());
 
     	Channel backendChannel = backendBootstrap.connect(
     			CascadeBootstrap.CONFIG.getTargetHost(), 

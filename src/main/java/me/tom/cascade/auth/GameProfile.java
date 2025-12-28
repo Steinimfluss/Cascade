@@ -4,20 +4,19 @@ import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
+import me.tom.cascade.protocol.types.Property;
 import me.tom.cascade.protocol.types.Utf8String;
 import me.tom.cascade.protocol.types.UuidType;
 import me.tom.cascade.protocol.types.VarInt;
 
 @Getter
 public class GameProfile {
-
     public UUID id;
     public String name;
     public Property[] properties;
 
     public void write(ByteBuf out) {
         UuidType.write(out, id);
-
         Utf8String.write(out, name, 16);
 
         if (properties == null) {
@@ -68,11 +67,5 @@ public class GameProfile {
         }
 
         return profile;
-    }
-
-    public static class Property {
-        public String name;
-        public String value;
-        public String signature;
     }
 }

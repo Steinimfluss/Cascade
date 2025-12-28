@@ -22,8 +22,10 @@ public class StatusRequestHandler extends SimpleChannelInboundHandler<StatusRequ
     			+ "              }\r\n"
     			+ "            }";
 
-            StatusResponsePacket response = new StatusResponsePacket(json);
+        StatusResponsePacket statusResponse = new StatusResponsePacket(
+        			json
+        		);
 
-            ctx.writeAndFlush(response);
+        ctx.writeAndFlush(statusResponse);
     }
 }

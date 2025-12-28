@@ -1,6 +1,5 @@
 package me.tom.cascade.net.pipeline;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import lombok.AllArgsConstructor;
@@ -10,9 +9,6 @@ import me.tom.cascade.protocol.codec.PacketFramer;
 
 @AllArgsConstructor
 public class BackendInitializer extends ChannelInitializer<SocketChannel> {
-
-    private final Channel clientChannel;
-
     @Override
     protected void initChannel(SocketChannel ch) {
         ch.pipeline()

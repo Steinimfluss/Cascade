@@ -25,8 +25,8 @@ public class EncryptionResponseHandler extends SimpleChannelInboundHandler<Encry
     protected void channelRead0(ChannelHandlerContext ctx, EncryptionResponsePacket packet) {
         PrivateKey privateKey = Crypto.KEY_PAIR.getPrivate();
 
-        byte[] sharedSecret = decrypt(packet.getSharedSecret(), privateKey);
-        byte[] verifyToken = decrypt(packet.getVerifyToken(), privateKey);
+        byte[] sharedSecret = Crypto.rsaDecrypt(packet.getSharedSecret(), privateKey);
+        byte[] verifyToken = Crypto.rsaDecrypt(packet.getVerifyToken(), privateKey);
 
         if (!isValidVerifyToken(ctx, verifyToken)) {
             ctx.close();
@@ -40,12 +40,10 @@ public class EncryptionResponseHandler extends SimpleChannelInboundHandler<Encry
         }
 
         enableEncryption(ctx.pipeline(), sharedSecret);
-        storeProfile(ctx, profile);
-        sendLoginSuccess(ctx, profile);
-    }
-
-    private byte[] decrypt(byte[] data, PrivateKey key) {
-        return Crypto.rsaDecrypt(data, key);
+        
+        ctx.channel().attr(ProtocolAttributes.GAME_PROFILE).set(profile);
+        
+        ctx.writeAndFlush(new LoginSuccessPacket(profile));
     }
 
     private boolean isValidVerifyToken(ChannelHandlerContext ctx, byte[] token) {
@@ -68,13 +66,5 @@ public class EncryptionResponseHandler extends SimpleChannelInboundHandler<Encry
         SecretKey aesKey = new SecretKeySpec(sharedSecret, "AES");
         pipeline.addFirst("decrypt", new AesDecryptHandler(aesKey));
         pipeline.addBefore("packet-encoder", "encrypt", new AesEncryptHandler(aesKey));
-    }
-
-    private void storeProfile(ChannelHandlerContext ctx, GameProfile profile) {
-        ctx.channel().attr(ProtocolAttributes.GAME_PROFILE).set(profile);
-    }
-
-    private void sendLoginSuccess(ChannelHandlerContext ctx, GameProfile profile) {
-        ctx.writeAndFlush(new LoginSuccessPacket(profile));
     }
 }

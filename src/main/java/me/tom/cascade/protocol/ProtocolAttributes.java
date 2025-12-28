@@ -9,23 +9,14 @@ public class ProtocolAttributes {
     public static final AttributeKey<ConnectionState> STATE =
             AttributeKey.valueOf("cascade-connection-state");
     
-    public static final AttributeKey<ConnectionState> INTENT =
-            AttributeKey.valueOf("cascade-connection-intent");
-    
-    public static final AttributeKey<byte[]> VERIFY_TOKEN =
-            AttributeKey.valueOf("cascade-verify-token");
+    public static final AttributeKey<Boolean> TRANSFER =
+            AttributeKey.valueOf("cascade-transfer");
     
     public static final AttributeKey<String> USERNAME =
             AttributeKey.valueOf("cascade-username");
     
-    public static final AttributeKey<Integer> PROTOCOL_VERSION =
-            AttributeKey.valueOf("cascade-protocol-version");
-    
-    public static final AttributeKey<String> HOSTNAME =
-            AttributeKey.valueOf("cascade-hostname");
-    
-    public static final AttributeKey<Integer> PORT =
-            AttributeKey.valueOf("cascade-port");
+    public static final AttributeKey<byte[]> VERIFY_TOKEN =
+            AttributeKey.valueOf("cascade-verify-token");
     
     public static final AttributeKey<GameProfile> GAME_PROFILE =
             AttributeKey.valueOf("cascade-game-profile");

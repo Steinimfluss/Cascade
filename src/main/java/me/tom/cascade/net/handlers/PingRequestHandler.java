@@ -9,8 +9,10 @@ public class PingRequestHandler extends SimpleChannelInboundHandler<PingRequestP
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, PingRequestPacket packet) {
-        PongResponsePacket response = new PongResponsePacket(packet.getTimestamp());
+        PongResponsePacket pongResponse = new PongResponsePacket(
+        			packet.getTimestamp()
+        		);
 
-        ctx.writeAndFlush(response);
+        ctx.writeAndFlush(pongResponse);
     }
 }

@@ -11,6 +11,9 @@ import me.tom.cascade.net.handlers.forward.ClientToServerHandler;
 import me.tom.cascade.net.handlers.forward.ServerToClientHandler;
 import me.tom.cascade.protocol.ConnectionState;
 import me.tom.cascade.protocol.ProtocolAttributes;
+import me.tom.cascade.protocol.codec.PacketDecoder;
+import me.tom.cascade.protocol.codec.PacketEncoder;
+import me.tom.cascade.protocol.codec.PacketFramer;
 import me.tom.cascade.protocol.packet.packets.clientbound.DisconnectPacket;
 import me.tom.cascade.protocol.packet.packets.serverbound.CookieResponsePacket;
 import me.tom.cascade.protocol.packet.packets.serverbound.EncryptionRequestPacket;
@@ -28,69 +31,54 @@ public class CookieResponseHandler extends SimpleChannelInboundHandler<CookieRes
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, CookieResponsePacket packet) {
-        ConnectionState state = ctx.channel().attr(ProtocolAttributes.STATE).get();
-        byte[] payload = packet.getPayload();
+        boolean isValidToken = packet.getPayload() != null 
+        		&& Arrays.equals(packet.getPayload(), SECRET);
+        boolean isTransfer = ctx.channel().attr(ProtocolAttributes.TRANSFER).get();
 
-        if (state == ConnectionState.LOGIN) {
-        	if (payload != null && Arrays.equals(payload, SECRET)) {
-        	    HandshakePacket storedHandshake = ctx.channel().attr(ProtocolAttributes.HANDSHAKE_PACKET).get();
-        	    LoginStartPacket storedLoginStart = ctx.channel().attr(ProtocolAttributes.LOGIN_START_PACKET).get();
-
-        	    backendChannel.attr(ProtocolAttributes.STATE).set(ConnectionState.HANDSHAKE);
-        	    backendChannel.writeAndFlush(storedHandshake).addListener(f -> {
-        	        backendChannel.attr(ProtocolAttributes.STATE).set(ConnectionState.LOGIN);
-        	        backendChannel.writeAndFlush(storedLoginStart);
-        	    });
-
-        	    removeOldHandlers(clientChannel);
-        	    removeOldHandlers(backendChannel);
-        	    
-        	    clientChannel.pipeline().addLast("clientToServer",
-                        new ClientToServerHandler(backendChannel));
-
-                backendChannel.pipeline().addLast("serverToClient",
-                        new ServerToClientHandler(clientChannel));
-
-        	    return;
-        	}
-
-            byte[] verifyToken = new byte[4];
+    	if (!isValidToken) {
+    		byte[] verifyToken = new byte[4];
             new SecureRandom().nextBytes(verifyToken);
 
             ctx.channel().attr(ProtocolAttributes.VERIFY_TOKEN).set(verifyToken);
 
-            EncryptionRequestPacket response = new EncryptionRequestPacket(
+            EncryptionRequestPacket encryptionRequest = new EncryptionRequestPacket(
                     "",
                     Crypto.KEY_PAIR.getPublic().getEncoded(),
                     verifyToken,
                     true
             );
 
-            ctx.writeAndFlush(response);
-            return;
-        }
-
-        ctx.writeAndFlush(new DisconnectPacket("{\"text\":\"Invalid or missing token\",\"color\":\"red\"}"));
-        ctx.close();
-    }
-
-    private void removeOldHandlers(Channel ch) {
-        removeIfPresent(ch, "packet-framer");
-        removeIfPresent(ch, "packet-decoder");
-        removeIfPresent(ch, "packet-encoder");
-        removeIfPresent(ch, "handshake-handler");
-        removeIfPresent(ch, "status-request-handler");
-        removeIfPresent(ch, "ping-request-handler");
-        removeIfPresent(ch, "login-start-handler");
-        removeIfPresent(ch, "cookie-response-handler");
-        removeIfPresent(ch, "encryption-response-handler");
-        removeIfPresent(ch, "login-acknowledged-handler");
-        removeIfPresent(ch, "connection-handler");
-    }
-
-    private void removeIfPresent(Channel ch, String name) {
-        if (ch.pipeline().get(name) != null) {
-            ch.pipeline().remove(name);
-        }
+            ctx.writeAndFlush(encryptionRequest);
+    	    return;
+    	}
+    	
+    	if(isTransfer) {
+	    	HandshakePacket handshake = ctx.channel().attr(ProtocolAttributes.HANDSHAKE_PACKET).get();
+		    LoginStartPacket loginStart = ctx.channel().attr(ProtocolAttributes.LOGIN_START_PACKET).get();
+	
+		    backendChannel.attr(ProtocolAttributes.STATE).set(ConnectionState.HANDSHAKE);
+		    backendChannel.writeAndFlush(handshake).addListener(f -> {
+		        backendChannel.attr(ProtocolAttributes.STATE).set(ConnectionState.LOGIN);
+		        backendChannel.writeAndFlush(loginStart);
+		    });
+	
+		    clientChannel.pipeline().remove(PacketFramer.class);
+		    clientChannel.pipeline().remove(PacketDecoder.class);
+		    clientChannel.pipeline().remove(PacketEncoder.class);
+		    clientChannel.pipeline().remove(ConnectionHandler.class);
+		    
+		    backendChannel.pipeline().remove(PacketFramer.class);
+		    backendChannel.pipeline().remove(PacketDecoder.class);
+		    backendChannel.pipeline().remove(PacketEncoder.class);
+		    
+		    clientChannel.pipeline().addLast("client-to-server",
+	                new ClientToServerHandler(backendChannel));
+	
+	        backendChannel.pipeline().addLast("server-to-client",
+	                new ServerToClientHandler(clientChannel));
+	        return;
+    	}
+    	
+    	System.out.println("IT DONT ACCEPT SHIT NIGGA");
     }
 }

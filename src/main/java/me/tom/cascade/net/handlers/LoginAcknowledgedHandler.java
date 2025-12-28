@@ -1,8 +1,10 @@
 package me.tom.cascade.net.handlers;
 
-import io.netty.channel.Channel;
+import java.net.InetSocketAddress;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import me.tom.cascade.CascadeBootstrap;
 import me.tom.cascade.protocol.ConnectionState;
 import me.tom.cascade.protocol.ProtocolAttributes;
 import me.tom.cascade.protocol.packet.packets.clientbound.StoreCookiePacket;
@@ -12,11 +14,21 @@ import me.tom.cascade.protocol.packet.packets.serverbound.LoginAcknowledgedPacke
 public class LoginAcknowledgedHandler extends SimpleChannelInboundHandler<LoginAcknowledgedPacket> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, LoginAcknowledgedPacket packet) throws Exception {
-        Channel client = ctx.channel();
-        client.attr(ProtocolAttributes.STATE).set(ConnectionState.CONFIGURATION);
+        ctx.channel().attr(ProtocolAttributes.STATE).set(ConnectionState.CONFIGURATION);
 
 		byte[] secret = {0x01};
-        ctx.writeAndFlush(new StoreCookiePacket("token", secret));
-        ctx.writeAndFlush(new TransferPacket("localhost", 25564));
+		
+		StoreCookiePacket storeCookie = new StoreCookiePacket(
+					"token", 
+					secret
+				);
+		
+		TransferPacket transfer = new TransferPacket(
+					((InetSocketAddress)ctx.channel().remoteAddress()).getHostString(), 
+					CascadeBootstrap.CONFIG.getProxyPort()
+				);
+		
+		ctx.writeAndFlush(storeCookie);
+		ctx.writeAndFlush(transfer);
     }
 }

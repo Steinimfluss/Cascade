@@ -8,7 +8,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-public class ConfigLoader {
+public class ProxyConfigLoader {
     private static final File propertiesFile = new File("proxy.properties");
 
     public static ProxyConfig load() {
