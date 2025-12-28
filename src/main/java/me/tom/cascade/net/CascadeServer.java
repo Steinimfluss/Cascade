@@ -5,6 +5,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import me.tom.cascade.net.pipeline.PipelineInitializer;
 
 public class CascadeServer {
 
@@ -25,7 +26,6 @@ public class CascadeServer {
                     .childHandler(new PipelineInitializer());
 
             ChannelFuture future = bootstrap.bind(port).sync();
-            System.out.println("Cascade listening on port " + port);
 
             future.channel().closeFuture().sync();
         } finally {

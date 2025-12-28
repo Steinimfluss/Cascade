@@ -4,9 +4,9 @@ import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
-import me.tom.cascade.net.types.Utf8String;
-import me.tom.cascade.net.types.UuidType;
-import me.tom.cascade.net.types.VarInt;
+import me.tom.cascade.protocol.types.Utf8String;
+import me.tom.cascade.protocol.types.UuidType;
+import me.tom.cascade.protocol.types.VarInt;
 
 @Getter
 public class GameProfile {

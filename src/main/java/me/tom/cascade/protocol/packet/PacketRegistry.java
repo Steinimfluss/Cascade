@@ -4,21 +4,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 import me.tom.cascade.protocol.ConnectionState;
-import me.tom.cascade.protocol.packet.packets.c2s.CookieResponsePacket;
-import me.tom.cascade.protocol.packet.packets.c2s.EncryptionRequestPacket;
-import me.tom.cascade.protocol.packet.packets.c2s.HandshakePacket;
-import me.tom.cascade.protocol.packet.packets.c2s.LoginAcknowledgedPacket;
-import me.tom.cascade.protocol.packet.packets.c2s.LoginStartPacket;
-import me.tom.cascade.protocol.packet.packets.c2s.PingRequestPacket;
-import me.tom.cascade.protocol.packet.packets.c2s.StatusRequestPacket;
-import me.tom.cascade.protocol.packet.packets.s2c.CookieRequestPacket;
-import me.tom.cascade.protocol.packet.packets.s2c.DisconnectPacket;
-import me.tom.cascade.protocol.packet.packets.s2c.EncryptionResponsePacket;
-import me.tom.cascade.protocol.packet.packets.s2c.LoginSuccessPacket;
-import me.tom.cascade.protocol.packet.packets.s2c.PongResponsePacket;
-import me.tom.cascade.protocol.packet.packets.s2c.StatusResponsePacket;
-import me.tom.cascade.protocol.packet.packets.s2c.StoreCookiePacket;
-import me.tom.cascade.protocol.packet.packets.s2c.TransferPacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.CookieRequestPacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.DisconnectPacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.EncryptionResponsePacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.LoginSuccessPacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.PongResponsePacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.StatusResponsePacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.StoreCookiePacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.TransferPacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.CookieResponsePacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.EncryptionRequestPacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.HandshakePacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.LoginAcknowledgedPacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.LoginStartPacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.PingRequestPacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.StatusRequestPacket;
 
 public class PacketRegistry {
     private final Map<Integer, Class<? extends Packet>> handshakePackets = new HashMap<>();

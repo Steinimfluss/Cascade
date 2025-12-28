@@ -2,8 +2,8 @@ package me.tom.cascade.protocol;
 
 import io.netty.util.AttributeKey;
 import me.tom.cascade.auth.GameProfile;
-import me.tom.cascade.protocol.packet.packets.c2s.HandshakePacket;
-import me.tom.cascade.protocol.packet.packets.c2s.LoginStartPacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.HandshakePacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.LoginStartPacket;
 
 public class ProtocolAttributes {
     public static final AttributeKey<ConnectionState> STATE =

@@ -8,54 +8,73 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import me.tom.cascade.auth.GameProfile;
 import me.tom.cascade.auth.MojangSessionService;
-import me.tom.cascade.net.crypto.AesDecryptHandler;
-import me.tom.cascade.net.crypto.AesEncryptHandler;
+import me.tom.cascade.crypto.AesDecryptHandler;
+import me.tom.cascade.crypto.AesEncryptHandler;
 import me.tom.cascade.protocol.ProtocolAttributes;
-import me.tom.cascade.protocol.packet.packets.s2c.EncryptionResponsePacket;
-import me.tom.cascade.protocol.packet.packets.s2c.LoginSuccessPacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.EncryptionResponsePacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.LoginSuccessPacket;
 import me.tom.cascade.util.Crypto;
 
 public class EncryptionResponseHandler extends SimpleChannelInboundHandler<EncryptionResponsePacket> {
 
-	@Override
-	protected void channelRead0(ChannelHandlerContext ctx, EncryptionResponsePacket packet) {
-	    PrivateKey privateKey = Crypto.KEY_PAIR.getPrivate();
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, EncryptionResponsePacket packet) {
+        PrivateKey privateKey = Crypto.KEY_PAIR.getPrivate();
 
-	    byte[] sharedSecret = Crypto.rsaDecrypt(packet.getSharedSecret(), privateKey);
-	    byte[] token = Crypto.rsaDecrypt(packet.getVerifyToken(), privateKey);
+        byte[] sharedSecret = decrypt(packet.getSharedSecret(), privateKey);
+        byte[] verifyToken = decrypt(packet.getVerifyToken(), privateKey);
 
-	    byte[] expected = ctx.channel().attr(ProtocolAttributes.VERIFY_TOKEN).get();
-	    if (!Arrays.equals(token, expected)) {
-	        ctx.close();
-	        return;
-	    }
+        if (!isValidVerifyToken(ctx, verifyToken)) {
+            ctx.close();
+            return;
+        }
 
-	    byte[] publicKeyBytes = Crypto.KEY_PAIR.getPublic().getEncoded();
+        GameProfile profile = authenticate(ctx, sharedSecret);
+        if (profile == null) {
+            ctx.close();
+            return;
+        }
 
-	    String serverIdHash = Crypto.minecraftSha1Hash("", sharedSecret, publicKeyBytes);
-	    String username = ctx.channel().attr(ProtocolAttributes.USERNAME).get();
-	    String clientIp = ((InetSocketAddress) ctx.channel().remoteAddress())
-	            .getAddress().getHostAddress();
+        enableEncryption(ctx.pipeline(), sharedSecret);
+        storeProfile(ctx, profile);
+        sendLoginSuccess(ctx, profile);
+    }
 
-	    GameProfile profile =
-	            MojangSessionService.hasJoined(username, serverIdHash, clientIp);
+    private byte[] decrypt(byte[] data, PrivateKey key) {
+        return Crypto.rsaDecrypt(data, key);
+    }
+
+    private boolean isValidVerifyToken(ChannelHandlerContext ctx, byte[] token) {
+        byte[] expected = ctx.channel().attr(ProtocolAttributes.VERIFY_TOKEN).get();
+        return Arrays.equals(token, expected);
+    }
+
+    private GameProfile authenticate(ChannelHandlerContext ctx, byte[] sharedSecret) {
+        String username = ctx.channel().attr(ProtocolAttributes.USERNAME).get();
+        byte[] publicKey = Crypto.KEY_PAIR.getPublic().getEncoded();
+        String serverHash = Crypto.minecraftSha1Hash("", sharedSecret, publicKey);
+        String ip = ((InetSocketAddress) ctx.channel().remoteAddress())
+                .getAddress()
+                .getHostAddress();
+
+        return MojangSessionService.hasJoined(username, serverHash, ip);
+    }
+
+    private void enableEncryption(ChannelPipeline pipeline, byte[] sharedSecret) {
+        SecretKey aesKey = new SecretKeySpec(sharedSecret, "AES");
+        pipeline.addFirst("decrypt", new AesDecryptHandler(aesKey));
+        pipeline.addBefore("packet-encoder", "encrypt", new AesEncryptHandler(aesKey));
+    }
+
+    private void storeProfile(ChannelHandlerContext ctx, GameProfile profile) {
         ctx.channel().attr(ProtocolAttributes.GAME_PROFILE).set(profile);
+    }
 
-	    if (profile == null) {
-	        ctx.close();
-	        return;
-	    }
-
-	    SecretKey aesKey = new SecretKeySpec(sharedSecret, "AES");
-	    
-	    LoginSuccessPacket response = new LoginSuccessPacket(profile);
-	    
-    	ctx.pipeline().addFirst("decrypt", new AesDecryptHandler(aesKey));
-    	ctx.pipeline().addBefore("packet-encoder", "encrypt", new AesEncryptHandler(aesKey));
-
-	    ctx.writeAndFlush(response);
-	}
+    private void sendLoginSuccess(ChannelHandlerContext ctx, GameProfile profile) {
+        ctx.writeAndFlush(new LoginSuccessPacket(profile));
+    }
 }

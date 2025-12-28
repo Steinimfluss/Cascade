@@ -2,8 +2,8 @@ package me.tom.cascade.net.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import me.tom.cascade.protocol.packet.packets.c2s.StatusRequestPacket;
-import me.tom.cascade.protocol.packet.packets.s2c.StatusResponsePacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.StatusResponsePacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.StatusRequestPacket;
 
 public class StatusRequestHandler extends SimpleChannelInboundHandler<StatusRequestPacket> {
     @Override

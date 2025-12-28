@@ -5,9 +5,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import me.tom.cascade.protocol.ConnectionState;
 import me.tom.cascade.protocol.ProtocolAttributes;
-import me.tom.cascade.protocol.packet.packets.c2s.LoginAcknowledgedPacket;
-import me.tom.cascade.protocol.packet.packets.s2c.StoreCookiePacket;
-import me.tom.cascade.protocol.packet.packets.s2c.TransferPacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.StoreCookiePacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.TransferPacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.LoginAcknowledgedPacket;
 
 public class LoginAcknowledgedHandler extends SimpleChannelInboundHandler<LoginAcknowledgedPacket> {
     @Override
@@ -18,6 +18,5 @@ public class LoginAcknowledgedHandler extends SimpleChannelInboundHandler<LoginA
 		byte[] secret = {0x01};
         ctx.writeAndFlush(new StoreCookiePacket("token", secret));
         ctx.writeAndFlush(new TransferPacket("localhost", 25564));
-        System.out.println("SENT");
     }
 }

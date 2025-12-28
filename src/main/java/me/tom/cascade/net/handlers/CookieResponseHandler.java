@@ -7,13 +7,15 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.AllArgsConstructor;
+import me.tom.cascade.net.handlers.forward.ClientToServerHandler;
+import me.tom.cascade.net.handlers.forward.ServerToClientHandler;
 import me.tom.cascade.protocol.ConnectionState;
 import me.tom.cascade.protocol.ProtocolAttributes;
-import me.tom.cascade.protocol.packet.packets.c2s.CookieResponsePacket;
-import me.tom.cascade.protocol.packet.packets.c2s.EncryptionRequestPacket;
-import me.tom.cascade.protocol.packet.packets.c2s.HandshakePacket;
-import me.tom.cascade.protocol.packet.packets.c2s.LoginStartPacket;
-import me.tom.cascade.protocol.packet.packets.s2c.DisconnectPacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.DisconnectPacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.CookieResponsePacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.EncryptionRequestPacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.HandshakePacket;
+import me.tom.cascade.protocol.packet.packets.serverbound.LoginStartPacket;
 import me.tom.cascade.util.Crypto;
 
 @AllArgsConstructor
@@ -26,38 +28,19 @@ public class CookieResponseHandler extends SimpleChannelInboundHandler<CookieRes
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, CookieResponsePacket packet) {
-
         ConnectionState state = ctx.channel().attr(ProtocolAttributes.STATE).get();
         byte[] payload = packet.getPayload();
 
         if (state == ConnectionState.LOGIN) {
         	if (payload != null && Arrays.equals(payload, SECRET)) {
-
-        	    System.out.println("Cookie matched — enabling forwarding.");
-
         	    HandshakePacket storedHandshake = ctx.channel().attr(ProtocolAttributes.HANDSHAKE_PACKET).get();
         	    LoginStartPacket storedLoginStart = ctx.channel().attr(ProtocolAttributes.LOGIN_START_PACKET).get();
 
-        	    System.out.println("2!!!");
-
-        	    // 1) Send handshake in HANDSHAKE state
         	    backendChannel.attr(ProtocolAttributes.STATE).set(ConnectionState.HANDSHAKE);
         	    backendChannel.writeAndFlush(storedHandshake).addListener(f -> {
-        	        if (!f.isSuccess()) {
-        	            f.cause().printStackTrace();
-        	            return;
-        	        }
-
-        	        // 2) After handshake is encoded/sent, switch to LOGIN and send login start
         	        backendChannel.attr(ProtocolAttributes.STATE).set(ConnectionState.LOGIN);
-        	        backendChannel.writeAndFlush(storedLoginStart).addListener(f2 -> {
-        	            if (!f2.isSuccess()) {
-        	                f2.cause().printStackTrace();
-        	            }
-        	        });
+        	        backendChannel.writeAndFlush(storedLoginStart);
         	    });
-
-        	    System.out.println("3!!!");
 
         	    removeOldHandlers(clientChannel);
         	    removeOldHandlers(backendChannel);
@@ -67,7 +50,6 @@ public class CookieResponseHandler extends SimpleChannelInboundHandler<CookieRes
 
                 backendChannel.pipeline().addLast("serverToClient",
                         new ServerToClientHandler(clientChannel));
-                System.out.println("ADDED THE FORWARDERS!");
 
         	    return;
         	}
