@@ -5,6 +5,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.SecureRandom;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.netty.channel.Channel;
@@ -31,6 +34,7 @@ import me.tom.cascade.util.Crypto;
 
 @AllArgsConstructor
 public class CookieResponseHandler extends SimpleChannelInboundHandler<CookieResponsePacket> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(CookieResponseHandler.class);
 
     private final Channel clientChannel;
     private final Channel backendChannel;
@@ -46,11 +50,13 @@ public class CookieResponseHandler extends SimpleChannelInboundHandler<CookieRes
         }
 
         if (!isValidToken && !isTransfer) {
+        	LOGGER.debug("Authenticating client {}", ctx.channel());
             handleNormalLogin(ctx);
             return;
         }
 
         if (isTransfer && isValidToken) {
+        	LOGGER.debug("Tunneling client {}", ctx.channel());
             completeTransfer(ctx);
             return;
         }

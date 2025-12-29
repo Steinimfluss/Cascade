@@ -26,7 +26,6 @@ public class CascadeBootstrap
     	    .registerTypeAdapter(UUID.class, new MojangUUIDAdapter())
     	    .create();
 	
-
 	public static final String PROXY_STATUS_JSON;
 	public static final String INVALID_TOKEN_JSON;
 
