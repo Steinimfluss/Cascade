@@ -29,6 +29,7 @@ public class ProxyConfigLoader {
         config.setProxyVersionProtocol(Integer.parseInt(props.getProperty("proxy_version_protocol")));
         config.setProxyVersionName(props.getProperty("proxy_version_name"));
         config.setProxyDescription(props.getProperty("proxy_description"));
+        config.setJwtSecret(props.getProperty("jwt_secret"));
 
         return config;
     }

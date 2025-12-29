@@ -14,7 +14,7 @@ public class LoginStartHandler extends SimpleChannelInboundHandler<LoginStartPac
     	ctx.channel().attr(ProtocolAttributes.LOGIN_START_PACKET).set(packet);
 
     	CookieRequestPacket cookieRequest = new CookieRequestPacket(
-    				"token"
+    				"cascade:token"
     			);
     	
         ctx.writeAndFlush(cookieRequest);

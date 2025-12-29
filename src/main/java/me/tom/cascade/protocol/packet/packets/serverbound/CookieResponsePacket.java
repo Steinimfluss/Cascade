@@ -18,7 +18,8 @@ public class CookieResponsePacket implements Packet {
     @Override
     public void decode(ByteBuf in) {
     	key = Utf8String.read(in, 32767);
-    	payload = ByteArray.read(in);
+    	if(in.readBoolean())
+    		payload = ByteArray.read(in);
     }
 
     @Override

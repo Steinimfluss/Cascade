@@ -13,4 +13,6 @@ public class ProxyConfig {
 	private int proxyVersionProtocol;
 	private String proxyVersionName;
 	private String proxyDescription;
+	
+	private String jwtSecret;
 }

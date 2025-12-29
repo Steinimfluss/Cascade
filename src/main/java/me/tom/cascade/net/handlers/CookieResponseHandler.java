@@ -1,12 +1,17 @@
 package me.tom.cascade.net.handlers;
 
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.security.SecureRandom;
-import java.util.Arrays;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import me.tom.cascade.CascadeBootstrap;
 import me.tom.cascade.net.handlers.forward.ClientToServerHandler;
 import me.tom.cascade.net.handlers.forward.ServerToClientHandler;
@@ -25,62 +30,96 @@ import me.tom.cascade.util.Crypto;
 @AllArgsConstructor
 public class CookieResponseHandler extends SimpleChannelInboundHandler<CookieResponsePacket> {
 
-    private static final byte[] SECRET = new byte[] { 0x01 };
-
     private final Channel clientChannel;
     private final Channel backendChannel;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, CookieResponsePacket packet) {
-        boolean isValidToken = packet.getPayload() != null 
-        		&& Arrays.equals(packet.getPayload(), SECRET);
         boolean isTransfer = ctx.channel().attr(ProtocolAttributes.TRANSFER).get();
 
-    	if (!isValidToken && !isTransfer) {
-    		byte[] verifyToken = new byte[4];
-            new SecureRandom().nextBytes(verifyToken);
+        boolean isValidToken = false;
+        if (packet.getPayload() != null && packet.getPayload().length > 0) {
+            String token = new String(packet.getPayload(), StandardCharsets.UTF_8);
+            isValidToken = isValidToken(token, ctx);
+        }
 
-            ctx.channel().attr(ProtocolAttributes.VERIFY_TOKEN).set(verifyToken);
+        if (!isValidToken && !isTransfer) {
+            handleNormalLogin(ctx);
+            return;
+        }
 
-            EncryptionRequestPacket encryptionRequest = new EncryptionRequestPacket(
-                    "",
-                    Crypto.KEY_PAIR.getPublic().getEncoded(),
-                    verifyToken,
-                    true
-            );
+        if (isTransfer && isValidToken) {
+            completeTransfer(ctx);
+            return;
+        }
 
-            ctx.writeAndFlush(encryptionRequest);
-    	    return;
-    	}
-    	
-    	if(isTransfer && isValidToken) {
-	    	HandshakePacket handshake = ctx.channel().attr(ProtocolAttributes.HANDSHAKE_PACKET).get();
-		    LoginStartPacket loginStart = ctx.channel().attr(ProtocolAttributes.LOGIN_START_PACKET).get();
-	
-		    backendChannel.attr(ProtocolAttributes.STATE).set(ConnectionState.HANDSHAKE);
-		    backendChannel.writeAndFlush(handshake).addListener(f -> {
-		        backendChannel.attr(ProtocolAttributes.STATE).set(ConnectionState.LOGIN);
-		        backendChannel.writeAndFlush(loginStart);
-		    });
-	
-		    clientChannel.pipeline().remove(PacketFramer.class);
-		    clientChannel.pipeline().remove(PacketDecoder.class);
-		    clientChannel.pipeline().remove(PacketEncoder.class);
-		    clientChannel.pipeline().remove(ConnectionHandler.class);
-		    
-		    backendChannel.pipeline().remove(PacketFramer.class);
-		    backendChannel.pipeline().remove(PacketDecoder.class);
-		    backendChannel.pipeline().remove(PacketEncoder.class);
-		    
-		    clientChannel.pipeline().addLast("client-to-server",
-	                new ClientToServerHandler(backendChannel));
-	
-	        backendChannel.pipeline().addLast("server-to-client",
-	                new ServerToClientHandler(clientChannel));
-	        return;
-    	}
-    	
-    	ctx.writeAndFlush(new DisconnectPacket(CascadeBootstrap.INVALID_TOKEN_JSON));
-    	ctx.close();
+        ctx.writeAndFlush(new DisconnectPacket(CascadeBootstrap.INVALID_TOKEN_JSON));
+        ctx.close();
+    }
+
+    private void handleNormalLogin(ChannelHandlerContext ctx) {
+        byte[] verifyToken = new byte[4];
+        new SecureRandom().nextBytes(verifyToken);
+
+        ctx.channel().attr(ProtocolAttributes.VERIFY_TOKEN).set(verifyToken);
+
+        EncryptionRequestPacket encryptionRequest = new EncryptionRequestPacket(
+                "",
+                Crypto.KEY_PAIR.getPublic().getEncoded(),
+                verifyToken,
+                true
+        );
+
+        ctx.writeAndFlush(encryptionRequest);
+    }
+
+    private void completeTransfer(ChannelHandlerContext ctx) {
+        HandshakePacket handshake = ctx.channel().attr(ProtocolAttributes.HANDSHAKE_PACKET).get();
+        LoginStartPacket loginStart = ctx.channel().attr(ProtocolAttributes.LOGIN_START_PACKET).get();
+
+        backendChannel.attr(ProtocolAttributes.STATE).set(ConnectionState.HANDSHAKE);
+        backendChannel.writeAndFlush(handshake).addListener(f -> {
+            backendChannel.attr(ProtocolAttributes.STATE).set(ConnectionState.LOGIN);
+            backendChannel.writeAndFlush(loginStart);
+        });
+
+        clientChannel.pipeline().remove(PacketFramer.class);
+        clientChannel.pipeline().remove(PacketDecoder.class);
+        clientChannel.pipeline().remove(PacketEncoder.class);
+        clientChannel.pipeline().remove(ConnectionHandler.class);
+
+        backendChannel.pipeline().remove(PacketFramer.class);
+        backendChannel.pipeline().remove(PacketDecoder.class);
+        backendChannel.pipeline().remove(PacketEncoder.class);
+
+        clientChannel.pipeline().addLast("client-to-server",
+                new ClientToServerHandler(backendChannel));
+        backendChannel.pipeline().addLast("server-to-client",
+                new ServerToClientHandler(clientChannel));
+    }
+
+    private boolean isValidToken(String jwt, ChannelHandlerContext ctx) {
+        try {
+            Key key = CascadeBootstrap.JWT_KEY;
+
+            Claims claims = Jwts.parser()
+                    .setSigningKey(key)
+                    .parseClaimsJws(jwt)
+                    .getBody();
+
+            String tokenUser = claims.getSubject();
+            String tokenIp = claims.get("ip", String.class);
+
+            String currentUser = ctx.channel().attr(ProtocolAttributes.USERNAME).get();
+            String currentIp = ((InetSocketAddress) ctx.channel().remoteAddress()).getHostString();
+
+            if (!tokenUser.equals(currentUser) || !tokenIp.equals(currentIp)) {
+                return false;
+            }
+
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
