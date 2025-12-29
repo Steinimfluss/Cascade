@@ -3,15 +3,11 @@ package me.tom.cascade.net.handlers;
 import java.net.InetSocketAddress;
 import java.util.Date;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import me.tom.cascade.CascadeBootstrap;
-import me.tom.cascade.net.CascadeProxy;
 import me.tom.cascade.protocol.ConnectionState;
 import me.tom.cascade.protocol.ProtocolAttributes;
 import me.tom.cascade.protocol.packet.packets.clientbound.StoreCookiePacket;
@@ -22,8 +18,8 @@ public class LoginAcknowledgedHandler extends SimpleChannelInboundHandler<LoginA
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, LoginAcknowledgedPacket packet) throws Exception {
         ctx.channel().attr(ProtocolAttributes.STATE).set(ConnectionState.CONFIGURATION);
+        
 		String ip = ((InetSocketAddress) ctx.channel().remoteAddress()).getHostString();
-
 		String jwt = Jwts.builder()
 		        .setSubject(ctx.channel().attr(ProtocolAttributes.USERNAME).get())
 		        .claim("ip", ip)

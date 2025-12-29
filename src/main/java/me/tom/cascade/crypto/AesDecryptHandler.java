@@ -13,7 +13,7 @@ public class AesDecryptHandler extends ByteToMessageDecoder {
     private final Cipher cipher;
 
     public AesDecryptHandler(SecretKey key) {
-        this.cipher = me.tom.cascade.util.Crypto.createAesCipher(Cipher.DECRYPT_MODE, key);
+        this.cipher = me.tom.cascade.crypto.Crypto.createAesCipher(Cipher.DECRYPT_MODE, key);
     }
 
     @Override

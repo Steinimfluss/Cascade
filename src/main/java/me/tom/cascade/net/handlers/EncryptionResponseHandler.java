@@ -16,10 +16,10 @@ import me.tom.cascade.auth.GameProfile;
 import me.tom.cascade.auth.MojangSessionService;
 import me.tom.cascade.crypto.AesDecryptHandler;
 import me.tom.cascade.crypto.AesEncryptHandler;
+import me.tom.cascade.crypto.Crypto;
 import me.tom.cascade.protocol.ProtocolAttributes;
 import me.tom.cascade.protocol.packet.packets.clientbound.EncryptionResponsePacket;
 import me.tom.cascade.protocol.packet.packets.clientbound.LoginSuccessPacket;
-import me.tom.cascade.util.Crypto;
 
 public class EncryptionResponseHandler extends SimpleChannelInboundHandler<EncryptionResponsePacket> {
 
@@ -29,21 +29,27 @@ public class EncryptionResponseHandler extends SimpleChannelInboundHandler<Encry
 
         byte[] sharedSecret = Crypto.rsaDecrypt(packet.getSharedSecret(), privateKey);
         byte[] verifyToken = Crypto.rsaDecrypt(packet.getVerifyToken(), privateKey);
+        boolean validToken = isValidVerifyToken(ctx, verifyToken);
+        boolean onlineMode = CascadeBootstrap.CONFIG.isAuthVerification();
 
-        if (!isValidVerifyToken(ctx, verifyToken)) {
+        if (!validToken) {
             ctx.close();
             return;
         }
 
-        if(CascadeBootstrap.CONFIG.isAuthVerification()) {
-	        GameProfile profile = authenticate(ctx, sharedSecret);
-	        if (profile == null) {
-	            ctx.close();
-	            return;
-	        }
-	        ctx.channel().attr(ProtocolAttributes.GAME_PROFILE).set(profile);
-	        enableEncryption(ctx.pipeline(), sharedSecret);
-	        ctx.writeAndFlush(new LoginSuccessPacket(profile));
+        if(!onlineMode) {
+        	return;
+        }
+        
+        if(onlineMode) {
+            GameProfile profile = authenticate(ctx, sharedSecret);
+            if (profile == null) {
+                ctx.close();
+                return;
+            }
+            ctx.channel().attr(ProtocolAttributes.GAME_PROFILE).set(profile);
+            enableEncryption(ctx.pipeline(), sharedSecret);
+            ctx.writeAndFlush(new LoginSuccessPacket(profile));
         } else {
             enableEncryption(ctx.pipeline(), sharedSecret);
         	ctx.writeAndFlush(new LoginSuccessPacket(new GameProfile(UUID.randomUUID(), "", null)));

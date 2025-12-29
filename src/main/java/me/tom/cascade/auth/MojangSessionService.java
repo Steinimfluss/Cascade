@@ -12,7 +12,7 @@ import java.util.UUID;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import me.tom.cascade.util.MojangUUIDAdapter;
+import me.tom.cascade.MojangUUIDAdapter;
 
 public class MojangSessionService {
 

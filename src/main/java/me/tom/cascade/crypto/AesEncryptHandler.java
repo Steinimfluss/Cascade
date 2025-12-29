@@ -12,7 +12,7 @@ public class AesEncryptHandler extends MessageToByteEncoder<Object> {
     private final Cipher cipher;
 
     public AesEncryptHandler(SecretKey key) {
-        this.cipher = me.tom.cascade.util.Crypto.createAesCipher(Cipher.ENCRYPT_MODE, key);
+        this.cipher = me.tom.cascade.crypto.Crypto.createAesCipher(Cipher.ENCRYPT_MODE, key);
     }
 
     @Override

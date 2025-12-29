@@ -1,4 +1,4 @@
-package me.tom.cascade.util;
+package me.tom.cascade;
 
 import java.lang.reflect.Type;
 import java.util.UUID;

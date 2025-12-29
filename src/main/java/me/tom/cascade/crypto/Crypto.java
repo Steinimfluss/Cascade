@@ -1,4 +1,4 @@
-package me.tom.cascade.util;
+package me.tom.cascade.crypto;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
