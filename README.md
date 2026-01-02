@@ -1,7 +1,7 @@
 # Cascade
 
 A lightweight proxy architecture that provides secure authentication, encrypted tunneling, and
-Minecraft-native Layer 7 DDoS protection — all without requiring mods on the backend.
+Minecraft-native Layer 7 DDoS protection — all without requiring mods or offline mode on the backend.
 
 ## Features
 - Cookie-based authentication flow
