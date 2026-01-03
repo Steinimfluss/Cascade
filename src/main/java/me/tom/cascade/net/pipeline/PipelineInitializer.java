@@ -6,6 +6,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import me.tom.cascade.CascadeBootstrap;
+import me.tom.cascade.net.NetworkSide;
 import me.tom.cascade.net.handlers.ConnectionHandler;
 import me.tom.cascade.net.handlers.CookieResponseHandler;
 import me.tom.cascade.net.handlers.EncryptionResponseHandler;
@@ -33,8 +34,8 @@ public class PipelineInitializer extends ChannelInitializer<SocketChannel> {
 
         ch.pipeline()
             .addLast("packet-framer", new PacketFramer())
-            .addLast("packet-decoder", new PacketDecoder())
-            .addLast("packet-encoder", new PacketEncoder())
+            .addLast("packet-decoder", new PacketDecoder(NetworkSide.SERVERBOUND))
+            .addLast("packet-encoder", new PacketEncoder(NetworkSide.CLIENTBOUND))
             .addLast("handshake-handler", new HandshakeHandler())
             .addLast("status-request-handler", new StatusRequestHandler())
             .addLast("ping-request-handler", new PingRequestHandler())

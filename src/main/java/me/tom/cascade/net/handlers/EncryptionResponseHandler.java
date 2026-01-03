@@ -48,6 +48,7 @@ public class EncryptionResponseHandler extends SimpleChannelInboundHandler<Encry
 	        if (profile == null) {
 	            ctx.close();
 	        }
+	    	System.out.println(profile.getName());
 	        return profile;
     	} else {
     		return new GameProfile(UUID.randomUUID(), "", null);
